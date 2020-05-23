@@ -1,26 +1,35 @@
-import wiringpi as wiringpi
+#!/usr/bin/env python3
+from pyftdi.spi import SpiController, SpiIOError
+
 import time
 import math 
 import sys
+
+ctrl= SpiController() #spi
+ctrl.configure('ftdi://ftdi:232h/1')  # Assuming there is only one FT232H.
+spi = ctrl.get_port(cs=0, freq=2E5, mode=0) # Assuming D3 is used for chip select.
+
 def WriteSPI32(w): 
     buf = [0,0,0,0]
     buf[3] = (w & 0x000000ff)
     buf[2] = (w & 0x0000ff00) >> 8
     buf[1] = (w & 0x00ff0000) >> 16
     buf[0] = (w & 0xff000000) >> 24
-    length, buf = wiringpi.wiringPiSPIDataRW(0, bytes(buf))
-    r=0
+    buf = spi.exchange(buf, 4, start=False, stop=False, duplex=True)
+    r = 0
     r += buf[0] << 24
     r += buf[1] << 16
     r += buf[2] << 8
     r += buf[3]
-    return r
+    return r ^ 0x80000000
 
 
 def WaitSPI32(w, comp): 
     r=-1
     while(r!=comp):
         r = WriteSPI32(w)
+        if r != 0xffffffff:
+            print("cur val 0x%08x" % r)
         time.sleep(0.01)
 
 
@@ -31,7 +40,7 @@ def getNext(fp):
     return n[0]
     
 
-def main():
+def upload():
     filename = sys.argv[1]
     print("Filename "+filename)
     fp = open(filename,'rb')
@@ -44,10 +53,8 @@ def main():
         return
     fp.seek(0)
 
-    wiringpi.wiringPiSetupGpio()
-    wiringpi.wiringPiSPISetup(0, 100000)
     print("Looking for Gameboy")
-    WaitSPI32(0x00006202, 0x72026202) ## Look for gba
+    WaitSPI32(0x00006202, 0x72026202) # Look for gba
 
     print("Found GBA!")
     r = WriteSPI32(0x00006202)
@@ -64,7 +71,7 @@ def main():
         r = WriteSPI32(w)
     print("Sent!")
     
-    r = WriteSPI32(0x00006200) ## Transfer comokete
+    r = WriteSPI32(0x00006200) # Transfer complete
     print("Exchange master/slave info again")
     r = WriteSPI32(0x00006202)
     print("Send palette data")
@@ -122,8 +129,5 @@ def main():
     print("CRC ...hope they match!")
     print("MulitBoot done")
 
-
-    
-
-
-main()
+if __name__ == "__main__":
+    upload()

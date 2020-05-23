@@ -1,4 +1,4 @@
-# GBA Multiboot uploader for Raspberry pi 
+# GBA Multiboot uploader for Adafruit FT232H 
 This is a Python port of the project hosted [here](https://github.com/akkera102/gba_01_multiboot).
 This Python script can be used to upload a multiboot ROM to a Gameboy Advance using the link cable.
 
@@ -10,7 +10,7 @@ Development kits like DevkitPro have the option to compile for multiboot. This t
 ![Gameboy + Raspberri Pi Zero W](gba.jpeg)
 
 ## Requirements 
- * WiringPi (Python)
+ * PyFtdi (Python)
  * Python 3
 
 ## Wiring
