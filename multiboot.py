@@ -28,8 +28,6 @@ def WaitSPI32(w, comp):
     r=-1
     while(r!=comp):
         r = WriteSPI32(w)
-        if r != 0xffffffff:
-            print("cur val 0x%08x" % r)
         time.sleep(0.01)
 
 
