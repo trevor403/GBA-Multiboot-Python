@@ -5,9 +5,29 @@ import time
 import math 
 import sys
 
-ctrl= SpiController() #spi
-ctrl.configure('ftdi://ftdi:232h/1')  # Assuming there is only one FT232H.
-spi = ctrl.get_port(cs=0, freq=2E5, mode=0) # Assuming D3 is used for chip select.
+from monitor import *
+import signal
+
+def signal_handler(signal, frame):
+    print("\nprogram exiting gracefully")
+    sys.exit(0)
+
+signal.signal(signal.SIGINT, signal_handler) # Install signal handler
+
+help_msg = '''usage: {}
+    -h show this help message
+    -s skip multiboot upload
+    -w wait for serial monitor using 0xCAFEFACE
+    -m monitor SIO printf messages         
+'''
+
+try:
+    ctrl= SpiController() #spi
+    ctrl.configure('ftdi://ftdi:232h/1')  # Assuming there is only one FT232H.
+    spi = ctrl.get_port(cs=0, freq=8E5, mode=1) # Assuming D3 is used for chip select.
+except:
+    print("error: missing FTDI F232H device")
+    sys.exit(1)
 
 def WriteSPI32(w): 
     buf = [0,0,0,0]
@@ -128,4 +148,14 @@ def upload():
     print("MulitBoot done")
 
 if __name__ == "__main__":
-    upload()
+    if '-h' in sys.argv:
+        print(help_msg.format(sys.argv[0]), end='')
+        sys.exit(0)
+    if '-s' not in sys.argv:
+        upload()
+        time.sleep(0.5)
+    if '-w' in sys.argv or '-mw' in sys.argv or '-wm' in sys.argv:
+            serial(spi)
+            time.sleep(0.5)
+    if '-m' in sys.argv or '-mw' in sys.argv or '-wm' in sys.argv:
+            monitor(spi)
