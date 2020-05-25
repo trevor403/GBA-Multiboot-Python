@@ -40,3 +40,9 @@ Connect to:
 Make sure the rom is a multiboot rom.
 
 ![Demo svg](demo.svg)
+
+## Serial Monitor example
+
+An example for how to use the serial monitor feature can be found here.
+
+[Example](https://github.com/trevor403/gba-sio-print)
